@@ -135,7 +135,14 @@ function bindNavigation(){
     else showView(b.dataset.view);
   });
 }
-function openReviews(){
+function votingClosed(){return settings.reviewOpen===false}
+async function refreshSettings(){
+  if(!firebaseReady)return;
+  try{await loadSettings()}catch(e){console.error(e)}
+}
+async function openReviews(){
+  await refreshSettings();
+  if(votingClosed()){showView("pickView");return}
   showView(reviewer.email?"pickView":"setupView");
 }
 function openCommunity(){
@@ -181,6 +188,8 @@ async function reviewedMemberIds(){
 }
 async function renderPickList(){
   const box=document.getElementById("pickList");
+  await refreshSettings();
+  if(votingClosed()){box.innerHTML='<div class="empty">Voting is closed. New reviews and changes to reviews are no longer accepted.</div>';return}
   if(!members.length){box.innerHTML='<div class="empty">No core members yet. An admin can add them from the Admin tab.</div>';return}
   box.innerHTML='<div class="empty">Loading members…</div>';
   const done=await reviewedMemberIds();
@@ -195,6 +204,7 @@ async function renderPickList(){
   });
 }
 function startMemberReview(id){
+  if(votingClosed()){toast("Voting is closed. You can’t submit or change a review.");showView("pickView");return}
   const index=members.findIndex(m=>m.id===id);
   if(index<0){toast("That member is no longer on the list.");return}
   currentMemberIndex=index;
@@ -240,24 +250,31 @@ function collectReview(){
 }
 async function saveCurrentReview(){
   if(!reviewer.email){toast("Enter your name and email first.");return}
+  await refreshSettings();
+  // Closed voting must reject both a new review and a second submit of an existing one.
+  if(votingClosed()){toast("Voting is closed. This review was not saved.");showView("pickView");return}
   const review=collectReview();
+  let saved=false;
   if(firebaseReady){
     try{
       // The deterministic review key makes one review per email/member in the UI/data model.
       const key=reviewKey(reviewer.email,review.memberId);
       const ref=db.collection("reviews").doc(key);
       const exists=await ref.get();
-      if(exists.exists){toast("You have already reviewed this member.");}
+      if(exists.exists){toast("You have already reviewed this member. It can’t be changed.");}
       else{
         const {reviewerName,reviewerEmail,...publicReview}=review;
         await ref.set({...publicReview,reviewerKey:key});
         await db.collection("review_private").doc(key).set({reviewerName,reviewerEmail,memberId:review.memberId,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+        saved=true;
       }
     }catch(e){console.error(e);toast("Could not save this review. Check Firebase configuration/rules.");return}
   }else{
-    const key=reviewer.email+"|"+review.memberId;localStorage.setItem("review:"+key,JSON.stringify(review));
+    const key="review:"+reviewer.email+"|"+review.memberId;
+    if(localStorage.getItem(key)){toast("You have already reviewed this member. It can’t be changed.");}
+    else{localStorage.setItem(key,JSON.stringify(review));saved=true}
   }
-  toast("Review saved. Choose another person, or stop here.");
+  if(saved)toast("Review saved. Choose another person, or stop here.");
   showView("pickView");
 }
 async function loadSettings(){
