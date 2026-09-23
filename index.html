@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Core Team • Member of the Month</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Firebase compat CDN. Replace firebaseConfig in app.js with your project config. -->
+  <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="brand-mark">🌿</span><div><b>Our NGO</b><small>People · Purpose · Change</small></div></div>
+  <nav>
+    <button class="nav-btn active" data-view="reviewView">Reviews</button>
+    <button class="nav-btn" data-view="resultsView">Community</button>
+    <button class="nav-btn" data-view="adminView">Admin</button>
+  </nav>
+  <div class="reviewer-badge" id="reviewerBadge">Not signed in</div>
+</header>
+
+<main class="app-shell">
+  <section id="setupView" class="view active">
+    <div class="hero-card">
+      <div class="hero-copy">
+        <span class="eyebrow">CORE TEAM · MONTHLY</span>
+        <h1>Celebrate the people who make the work happen.</h1>
+        <p>Review each core member in a few minutes. Be honest, kind and specific — and have a little fun.</p>
+        <div class="hero-pills"><span>⚡ Quick</span><span>❤️ Human</span><span>🎨 Fun</span><span>🔒 Anonymous after close</span></div>
+      </div>
+      <div class="hero-art">🌱<br><span>Good people.<br>Brighter impact.</span></div>
+    </div>
+    <div class="card narrow">
+      <h2>First, tell us who you are</h2>
+      <p class="muted">Your name/email is required so we can prevent duplicate reviews. Your identity will not be shown beside answers once the review period is closed.</p>
+      <div class="two-col">
+        <label>Full name<input id="reviewerName" type="text" autocomplete="name" placeholder="e.g. Sagar Arora"></label>
+        <label>Email<input id="reviewerEmail" type="email" autocomplete="email" placeholder="you@example.com"></label>
+      </div>
+      <label class="check"><input id="consent" type="checkbox"> I understand that my review should be respectful and constructive.</label>
+      <button class="btn primary wide" id="startBtn">Continue →</button>
+      <p class="tiny" id="setupMessage"></p>
+    </div>
+  </section>
+
+  <section id="pickView" class="view">
+    <div class="review-header">
+      <div>
+        <span class="eyebrow">CHOOSE SOMEONE</span>
+        <h1>Who do you want to review?</h1>
+        <p class="muted">Pick one person. After you submit, you can come back and review someone else.</p>
+      </div>
+    </div>
+    <div id="pickList" class="pick-list"></div>
+  </section>
+
+  <section id="reviewView" class="view">
+    <div class="review-header">
+      <div>
+        <span class="eyebrow">REVIEWING</span>
+        <h1 id="memberName">Member</h1>
+        <p id="memberCounter" class="muted"></p>
+      </div>
+      <button id="chooseAnother" class="btn" type="button">← All members</button>
+    </div>
+
+    <div class="card">
+      <div class="steps" id="steps">
+        <span class="step active">1 · Vibe</span><span class="step">2 · Stand out</span><span class="step">3 · Animal</span><span class="step">4 · Future</span><span class="step">5 · Final</span>
+      </div>
+
+      <div class="form-page active" data-page="0">
+        <h2>How do you experience them?</h2>
+        <p class="muted">Choose one for each, or select “Don’t know” if you haven't worked with them enough.</p>
+        <div id="ratings"></div>
+      </div>
+
+      <div class="form-page" data-page="1">
+        <h2>What makes them stand out?</h2>
+        <p class="muted">Pick what fits. Multiple answers are okay.</p>
+        <label>What do they naturally bring to the team?</label>
+        <div id="traitChips" class="chips"></div>
+        <label>What have they done that impressed you?</label>
+        <textarea id="impressed" placeholder="A moment, action, idea, event, or anything you appreciated..."></textarea>
+        <label>How have they gone beyond their responsibility?</label>
+        <textarea id="beyond" placeholder="Optional — a small or big example is enough."></textarea>
+      </div>
+
+      <div class="form-page" data-page="2">
+        <h2>If they were an animal… 🐾</h2>
+        <p class="muted">No animal cards. Draw the animal that gives you their vibe. Terrible drawings are encouraged.</p>
+        <div class="draw-layout">
+          <div class="drawing-card">
+            <div class="draw-toolbar">
+              <button class="tool active" data-tool="pen">✏️</button>
+              <button class="tool" data-tool="eraser">🧽</button>
+              <button id="clearCanvas" class="tool">🗑️</button>
+              <div class="colors" id="colors"></div>
+              <label class="brush-size">Size <input id="brushSize" type="range" min="2" max="30" value="6"></label>
+            </div>
+            <canvas id="drawingCanvas"></canvas>
+          </div>
+          <div class="tip-box"><b>🎨 Draw directly with your finger</b><p>Works with mouse, stylus and touch screens. Pick a color, erase, change brush size and draw away.</p></div>
+        </div>
+        <label>Why does this animal remind you of them?</label>
+        <textarea id="animalWhy" placeholder="Because they are loyal, calm, energetic, clever..."></textarea>
+      </div>
+
+      <div class="form-page" data-page="3">
+        <h2>Where could they go next? 🔮</h2>
+        <p class="muted">This is about potential, not a prediction.</p>
+        <label>What could they naturally grow into?</label>
+        <div id="futureChips" class="chips"></div>
+        <label>What skill would you love to see them learn more?</label>
+        <textarea id="skills" placeholder="A skill, habit, responsibility or area to explore..."></textarea>
+        <label>What could they explore or take ownership of in the NGO?</label>
+        <textarea id="explore" placeholder="Something that would suit their strengths..."></textarea>
+      </div>
+
+      <div class="form-page" data-page="4">
+        <h2>One last thing ❤️</h2>
+        <p class="muted">Make this part memorable.</p>
+        <label>What's your favorite moment or memory with them?</label>
+        <textarea id="memory" placeholder="A funny moment, a meaningful conversation, an event..."></textarea>
+        <label>What's one thing that could make them even more awesome?</label>
+        <textarea id="suggestion" placeholder="Keep it kind and constructive..."></textarea>
+        <label>Overall, how would you rate your experience with them?</label>
+        <div id="overall" class="chips"></div>
+        <label>Write them a message they'll see at the end of the month 💌</label>
+        <textarea id="message" placeholder="Something I appreciate about you is..."></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button id="backBtn" class="btn">← Back</button>
+        <button id="nextBtn" class="btn primary">Next →</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="doneView" class="view">
+    <div class="card success-card"><div class="success-icon">🎉</div><h1>All reviews submitted!</h1><p class="muted">You reviewed every core member. Once the review window closes, the team can anonymously read and react to the answers.</p><button class="btn primary" id="communityBtn">Go to community →</button></div>
+  </section>
+
+  <section id="resultsView" class="view">
+    <div class="review-header"><div><span class="eyebrow">COMMUNITY</span><h1>Read. React. Appreciate.</h1><p class="muted" id="resultsStatus">Answers become visible after the organizer closes voting.</p></div></div>
+    <div id="resultsContainer"></div>
+  </section>
+
+  <section id="adminView" class="view">
+    <div id="adminGate" class="card narrow">
+      <span class="eyebrow">ADMIN ONLY</span>
+      <h1>Organizer sign in</h1>
+      <p class="muted">Closing voting, reading who wrote each answer, and choosing the winner are limited to an admin. Everyone else can submit a review and, after voting closes, read anonymous answers.</p>
+      <label>Admin email<input id="adminEmail" type="email" autocomplete="username" placeholder="admin@ngo.org"></label>
+      <label>Password<input id="adminPassword" type="password" autocomplete="current-password"></label>
+      <button id="adminLogin" class="btn primary wide" type="button">Sign in</button>
+      <p class="tiny" id="adminLoginMessage"></p>
+    </div>
+    <div id="adminPanel" hidden>
+      <div class="review-header">
+        <div><span class="eyebrow">ADMIN</span><h1>Evaluate and choose a winner</h1><p class="muted">Signed in as <b id="adminWho"></b></p></div>
+        <button id="adminLogout" class="btn" type="button">Sign out</button>
+      </div>
+      <div class="card">
+        <h2>Review status</h2>
+        <div class="status-row"><span id="statusText">Loading…</span><button id="toggleStatus" class="btn primary" type="button">Toggle</button></div>
+        <hr>
+        <h2>Add core member</h2>
+        <div class="two-col"><label>Name<input id="newMemberName" placeholder="Member name"></label><label>Role <input id="newMemberRole" placeholder="e.g. Operations"></label></div>
+        <button id="addMember" class="btn primary" type="button">Add member</button>
+        <div id="memberList" class="member-list"></div>
+      </div>
+      <div class="card eval-card">
+        <h2>Answers</h2>
+        <p class="muted">Every rating and written answer is listed here, with the emoji reactions people gave that specific answer. Use those counts when you choose a winner. Reviewer names stay on this page only.</p>
+        <div id="evalList"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="toast" class="toast"></div>
+</body>
+</html>
